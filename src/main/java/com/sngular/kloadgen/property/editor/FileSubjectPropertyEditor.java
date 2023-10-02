@@ -119,7 +119,7 @@ public class FileSubjectPropertyEditor extends PropertyEditorSupport implements 
   }
 
   public final String getSelectedSchema(final String name) {
-    return parserSchema.indexOf(name) > 0 ? parserSchema.get(parserSchema.indexOf(name)) : null;
+    return parserSchema.contains(name) ? parserSchema.get(parserSchema.indexOf(name)) : null;
   }
 
   public final List<FieldValueMapping> getAttributeList(final ParsedSchema selectedSchema) {
