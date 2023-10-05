@@ -22,8 +22,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+import com.sngular.kloadgen.common.SchemaRegistryEnum;
 import com.sngular.kloadgen.common.SchemaTypeEnum;
 import com.sngular.kloadgen.extractor.SchemaExtractor;
+import com.sngular.kloadgen.extractor.extractors.ExtractorFactory;
+import com.sngular.kloadgen.extractor.extractors.ExtractorRegistry;
 import com.sngular.kloadgen.model.FieldValueMapping;
 import com.sngular.kloadgen.util.AutoCompletion;
 import com.sngular.kloadgen.util.PropsKeysHelper;
@@ -36,6 +39,7 @@ import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.filechooser.FileSystemView;
+
 import lombok.extern.slf4j.Slf4j;
 import org.apache.avro.AvroRuntimeException;
 import org.apache.jmeter.gui.ClearGui;
@@ -102,13 +106,21 @@ public class FileSubjectPropertyEditor extends PropertyEditorSupport implements 
     final int returnValue = fileChooser.showDialog(panel, JMeterUtils.getResString("file_visualizer_open"));
 
     if (JFileChooser.APPROVE_OPTION == returnValue) {
-      final File subjectName = Objects.requireNonNull(fileChooser.getSelectedFile());
+      final File schemaFile = Objects.requireNonNull(fileChooser.getSelectedFile());
       try {
         final String schemaType = schemaTypeComboBox.getSelectedItem().toString();
-        parserSchema = SchemaExtractor.schemaTypesList(subjectName, schemaType, "CONFLUENT"); //TODO CHANGE
-        subjectNameComboBox.removeAllItems();
-        subjectNameComboBox.addItem(parserSchema.get(0));
-        subjectNameComboBox.setSelectedItem(parserSchema.get(0));
+        parserSchema = SchemaExtractor.schemaTypesList(schemaFile, schemaType, "CONFLUENT"); //TODO CHANGE
+        ExtractorRegistry extractor = ExtractorFactory.getExtractor(schemaType, "CONFLUENT");
+
+        //Read file contents
+        String fileContents = SchemaExtractor.readLineByLine(schemaFile.getPath());
+
+        //Convert file contents into a schema
+        ParsedSchema schema = extractor.processSchema(fileContents);
+
+        //Get list of rows and put them on a table
+        var processedSchema = extractor.processSchema(schema, SchemaRegistryEnum.CONFLUENT);
+        buildTable(processedSchema);
       } catch (final IOException e) {
         JOptionPane.showMessageDialog(panel, "Can't read a file : " + e.getMessage(), ERROR_FAILED_TO_RETRIEVE_PROPERTIES,
                                       JOptionPane.ERROR_MESSAGE);
@@ -131,53 +143,48 @@ public class FileSubjectPropertyEditor extends PropertyEditorSupport implements 
   }
 
   @Override
-  public final void actionPerformed(final ActionEvent event) {
+  public final void actionPerformed(ActionEvent e) {}
 
-    if (subjectNameComboBox.getItemCount() != 0) {
-      final String schemaType = (String) schemaTypeComboBox.getSelectedItem();
-      final String selectedItem = (String) subjectNameComboBox.getSelectedItem();
-      final String selectedSchema = getSelectedSchema(selectedItem);
-      final List<FieldValueMapping> attributeList = SchemaExtractor.flatPropertiesList(selectedSchema).getValue();
+  private void buildTable(final List<FieldValueMapping> attributeList) {
 
-      if (!attributeList.isEmpty()) {
-        try {
-          //Get current test GUI component
-          final TestBeanGUI testBeanGUI = (TestBeanGUI) GuiPackage.getInstance().getCurrentGui();
-          final Field customizer = TestBeanGUI.class.getDeclaredField(PropsKeysHelper.CUSTOMIZER);
-          customizer.setAccessible(true);
+    if (!attributeList.isEmpty()) {
+      try {
+        //Get current test GUI component
+        final TestBeanGUI testBeanGUI = (TestBeanGUI) GuiPackage.getInstance().getCurrentGui();
+        final Field customizer = TestBeanGUI.class.getDeclaredField(PropsKeysHelper.CUSTOMIZER);
+        customizer.setAccessible(true);
 
-          //From TestBeanGUI retrieve Bean Customizer as it includes all editors like ClassPropertyEditor, TableEditor
-          final GenericTestBeanCustomizer testBeanCustomizer = (GenericTestBeanCustomizer) customizer.get(testBeanGUI);
-          final Field editors = GenericTestBeanCustomizer.class.getDeclaredField(PropsKeysHelper.EDITORS);
-          editors.setAccessible(true);
+        //From TestBeanGUI retrieve Bean Customizer as it includes all editors like ClassPropertyEditor, TableEditor
+        final GenericTestBeanCustomizer testBeanCustomizer = (GenericTestBeanCustomizer) customizer.get(testBeanGUI);
+        final Field editors = GenericTestBeanCustomizer.class.getDeclaredField(PropsKeysHelper.EDITORS);
+        editors.setAccessible(true);
 
-          //Retrieve TableEditor and set all fields with default values to it
-          final PropertyEditor[] propertyEditors = (PropertyEditor[]) editors.get(testBeanCustomizer);
-          for (PropertyEditor propertyEditor : propertyEditors) {
-            if (propertyEditor instanceof TableEditor) {
-              propertyEditor.setValue(attributeList);
-            } else if (propertyEditor instanceof SchemaConverterPropertyEditor) {
-              propertyEditor.setValue(selectedSchema);
-            } else if (propertyEditor instanceof SchemaTypePropertyEditor) {
-              propertyEditor.setValue(schemaType);
-            }
-          }
-        } catch (NoSuchFieldException | IllegalAccessException e) {
-          JOptionPane
-              .showMessageDialog(panel, "Failed to retrieve schema : " + e.getMessage(), ERROR_FAILED_TO_RETRIEVE_PROPERTIES,
-                                 JOptionPane.ERROR_MESSAGE);
-          log.error(e.getMessage(), e);
-        } catch (final AvroRuntimeException ex) {
-          JOptionPane
-              .showMessageDialog(panel, "Failed to process schema : " + ex.getMessage(), ERROR_FAILED_TO_RETRIEVE_PROPERTIES,
-                                 JOptionPane.ERROR_MESSAGE);
-          log.error(ex.getMessage(), ex);
+        //Retrieve TableEditor and set all fields with default values to it
+        final PropertyEditor[] propertyEditors = (PropertyEditor[]) editors.get(testBeanCustomizer);
+        for (PropertyEditor propertyEditor : propertyEditors) {
+          if (propertyEditor instanceof TableEditor) {
+            propertyEditor.setValue(attributeList);
+          }/* else if (propertyEditor instanceof SchemaConverterPropertyEditor) {
+            propertyEditor.setValue(selectedSchema);
+          } else if (propertyEditor instanceof SchemaTypePropertyEditor) {
+            propertyEditor.setValue(schemaType);
+          }*/
         }
-      } else {
+      } catch (NoSuchFieldException | IllegalAccessException e) {
         JOptionPane
-            .showMessageDialog(panel, "No schema has been loaded, we cannot extract properties", ERROR_FAILED_TO_RETRIEVE_PROPERTIES,
-                               JOptionPane.WARNING_MESSAGE);
+            .showMessageDialog(panel, "Failed to retrieve schema : " + e.getMessage(), ERROR_FAILED_TO_RETRIEVE_PROPERTIES,
+                               JOptionPane.ERROR_MESSAGE);
+        log.error(e.getMessage(), e);
+      } catch (final AvroRuntimeException ex) {
+        JOptionPane
+            .showMessageDialog(panel, "Failed to process schema : " + ex.getMessage(), ERROR_FAILED_TO_RETRIEVE_PROPERTIES,
+                               JOptionPane.ERROR_MESSAGE);
+        log.error(ex.getMessage(), ex);
       }
+    } else {
+      JOptionPane
+          .showMessageDialog(panel, "No schema has been loaded, we cannot extract properties", ERROR_FAILED_TO_RETRIEVE_PROPERTIES,
+                             JOptionPane.WARNING_MESSAGE);
     }
   }
 

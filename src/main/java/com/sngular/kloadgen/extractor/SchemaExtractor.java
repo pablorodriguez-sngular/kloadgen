@@ -42,7 +42,7 @@ public  class SchemaExtractor {
             ExtractorFactory.getSchemaRegistry(registry));
   }
 
-  private static String readLineByLine(final String filePath) throws IOException {
+  public static String readLineByLine(final String filePath) throws IOException {
     final StringBuilder contentBuilder = new StringBuilder();
 
     try (Stream<String> stream = Files.lines(Paths.get(filePath), StandardCharsets.UTF_8)) {
