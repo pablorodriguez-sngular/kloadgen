@@ -17,6 +17,8 @@ import org.junit.jupiter.api.Test;
 class KafkaHeadersConfigElementBeanInfoTest {
 
   private static final String KAFKA_HEADERS = "kafkaHeaders";
+  private static final String KAFKA_PROPERTIES = "props";
+  private static final String KAFKA_SCHEMA = "schema";
 
   private KafkaHeadersConfigElementBeanInfo kafkaHeadersConfigElementBeanInfo;
 
@@ -29,7 +31,9 @@ class KafkaHeadersConfigElementBeanInfoTest {
   @Test
   final void shouldGenerateElements() {
     final PropertyDescriptor[] propertyDescriptors = kafkaHeadersConfigElementBeanInfo.getPropertyDescriptors();
-    Assertions.assertThat(propertyDescriptors).hasSize(1);
+    Assertions.assertThat(propertyDescriptors).hasSize(3);
     Assertions.assertThat(propertyDescriptors[0].getName()).isEqualTo(KAFKA_HEADERS);
+    Assertions.assertThat(propertyDescriptors[1].getName()).isEqualTo(KAFKA_PROPERTIES);
+    Assertions.assertThat(propertyDescriptors[2].getName()).isEqualTo(KAFKA_SCHEMA);
   }
 }

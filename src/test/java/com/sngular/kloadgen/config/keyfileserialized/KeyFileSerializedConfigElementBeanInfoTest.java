@@ -28,6 +28,10 @@ class KeyFileSerializedConfigElementBeanInfoTest {
 
   private static final String SERIALIZER_PROPERTY = "keySerializerConfiguration";
 
+  private static final String PROPERTIES = "props";
+
+  private static final String SCHEMA = "schema";
+
   private KeyFileSerializedConfigElementBeanInfo keyFileSerializedConfigElementBeanInfo;
 
   @BeforeEach
@@ -39,12 +43,14 @@ class KeyFileSerializedConfigElementBeanInfoTest {
   @Test
   void shouldGenerateElements() {
     final PropertyDescriptor[] propertyDescriptors = keyFileSerializedConfigElementBeanInfo.getPropertyDescriptors();
-    Assertions.assertThat(propertyDescriptors).hasSize(6);
+    Assertions.assertThat(propertyDescriptors).hasSize(8);
     Assertions.assertThat(propertyDescriptors[0].getName()).isEqualTo(KEY_NAME_STRATEGY);
     Assertions.assertThat(propertyDescriptors[1].getName()).isEqualTo(KEY_SCHEMA_DEFINITION);
     Assertions.assertThat(propertyDescriptors[2].getName()).isEqualTo(KEY_SCHEMA_PROPERTIES);
     Assertions.assertThat(propertyDescriptors[3].getName()).isEqualTo(KEY_SCHEMA_TYPE);
     Assertions.assertThat(propertyDescriptors[4].getName()).isEqualTo(SERIALIZER_PROPERTY);
     Assertions.assertThat(propertyDescriptors[5].getName()).isEqualTo(KEY_SUBJECT_NAME);
+    Assertions.assertThat(propertyDescriptors[6].getName()).isEqualTo(PROPERTIES);
+    Assertions.assertThat(propertyDescriptors[7].getName()).isEqualTo(SCHEMA);
   }
 }

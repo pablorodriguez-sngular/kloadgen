@@ -25,6 +25,10 @@ class ValueSerializedConfigElementBeanInfoTest {
 
   private static final String VALUE_SERIALIZER_CONFIGURATION = "valueSerializerConfiguration";
 
+  private static final String PROPERTIES = "props";
+
+  private static final String SCHEMA = "schema";
+
   private ValueSerializedConfigElementBeanInfo valueSerializedConfigElementBeanInfo;
 
   @BeforeEach
@@ -36,11 +40,13 @@ class ValueSerializedConfigElementBeanInfoTest {
   @Test
   void shouldGenerateElements() {
     final var propertyDescriptors = valueSerializedConfigElementBeanInfo.getPropertyDescriptors();
-    Assertions.assertThat(propertyDescriptors).hasSize(5);
-    Assertions.assertThat(propertyDescriptors[0].getName()).isEqualTo(VALUE_NAME_STRATEGY);
-    Assertions.assertThat(propertyDescriptors[1].getName()).isEqualTo(VALUE_SCHEMA_PROPERTIES);
-    Assertions.assertThat(propertyDescriptors[2].getName()).isEqualTo(VALUE_SCHEMA_TYPE);
-    Assertions.assertThat(propertyDescriptors[3].getName()).isEqualTo(VALUE_SERIALIZER_CONFIGURATION);
-    Assertions.assertThat(propertyDescriptors[4].getName()).isEqualTo(VALUE_SUBJECT_NAME);
+    Assertions.assertThat(propertyDescriptors).hasSize(7);
+    Assertions.assertThat(propertyDescriptors[0].getName()).isEqualTo(PROPERTIES);
+    Assertions.assertThat(propertyDescriptors[1].getName()).isEqualTo(SCHEMA);
+    Assertions.assertThat(propertyDescriptors[2].getName()).isEqualTo(VALUE_NAME_STRATEGY);
+    Assertions.assertThat(propertyDescriptors[3].getName()).isEqualTo(VALUE_SCHEMA_PROPERTIES);
+    Assertions.assertThat(propertyDescriptors[4].getName()).isEqualTo(VALUE_SCHEMA_TYPE);
+    Assertions.assertThat(propertyDescriptors[5].getName()).isEqualTo(VALUE_SERIALIZER_CONFIGURATION);
+    Assertions.assertThat(propertyDescriptors[6].getName()).isEqualTo(VALUE_SUBJECT_NAME);
   }
 }
