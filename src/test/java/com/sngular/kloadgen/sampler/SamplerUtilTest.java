@@ -117,6 +117,8 @@ class SamplerUtilTest {
     void configureValueGeneratorTest(String jmeterProps) throws IOException {
         Properties props = new Properties();
         props.put(SchemaRegistryKeyHelper.SCHEMA_REGISTRY_URL, jmeterProps);
+        jmcx.getProperties().put(PropsKeysHelper.VALUE_SCHEMA_TYPE, "avro");
+        jmcx.getProperties().put(PropsKeysHelper.VALUE_SCHEMA, getVariablesAvro().get(PropsKeysHelper.VALUE_SCHEMA));
         jmcx.setVariables(getVariablesAvro());
         var generator = SamplerUtil.configureValueGenerator(props);
         Assertions.assertThat(generator.nextMessage()).isNotNull();
@@ -129,12 +131,18 @@ class SamplerUtilTest {
         props.put(SchemaRegistryKeyHelper.SCHEMA_REGISTRY_URL, "localhost:8081");
         props.put(PropsKeysHelper.KEY_SCHEMA_TYPE, jmeterProps);
 
-        if (jmeterProps.equalsIgnoreCase("json"))
+        if (jmeterProps.equalsIgnoreCase("json")) {
             jmcx.setVariables(getVariablesJsonSchema());
-        if (jmeterProps.equalsIgnoreCase("avro"))
+            jmcx.getProperties().put(PropsKeysHelper.VALUE_SCHEMA_TYPE, "json");
+        }
+        if (jmeterProps.equalsIgnoreCase("avro")) {
             jmcx.setVariables(getVariablesAvro());
-        if (jmeterProps.equalsIgnoreCase("protobuf"))
+            jmcx.getProperties().put(PropsKeysHelper.VALUE_SCHEMA_TYPE, "avro");
+        }
+        if (jmeterProps.equalsIgnoreCase("protobuf")) {
             jmcx.setVariables(getVariablesProtobuf());
+            jmcx.getProperties().put(PropsKeysHelper.VALUE_SCHEMA_TYPE, "protobuf");
+        }
 
         var generator = SamplerUtil.configureKeyGenerator(props);
         Assertions.assertThat(generator.nextMessage()).isNotNull();

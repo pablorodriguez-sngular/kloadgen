@@ -121,6 +121,10 @@ public class FileSubjectPropertyEditor extends PropertyEditorSupport implements 
         //Get list of rows and put them on a table
         var processedSchema = extractor.processSchema(schema, SchemaRegistryEnum.CONFLUENT);
         buildTable(processedSchema);
+
+        JMeterContextService.getContext().getProperties().put(PropsKeysHelper.VALUE_SCHEMA, fileContents);
+        JMeterContextService.getContext().getProperties().put(PropsKeysHelper.VALUE_SCHEMA_TYPE, schemaType);
+
       } catch (final IOException e) {
         JOptionPane.showMessageDialog(panel, "Can't read a file : " + e.getMessage(), ERROR_FAILED_TO_RETRIEVE_PROPERTIES,
                                       JOptionPane.ERROR_MESSAGE);

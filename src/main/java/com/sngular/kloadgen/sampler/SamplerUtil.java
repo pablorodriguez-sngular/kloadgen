@@ -382,13 +382,13 @@ public final class SamplerUtil {
                                  (List<FieldValueMapping>) jMeterVariables.getObject(PropsKeysHelper.VALUE_SCHEMA_PROPERTIES));
       } catch (final KLoadGenException exc) {
         if (Objects.nonNull(props.get(SchemaRegistryKeyHelper.ENABLE_AUTO_SCHEMA_REGISTRATION_CONFIG))) {
-          generator.setUpGenerator(jMeterVariables.get(PropsKeysHelper.VALUE_SCHEMA), (List<FieldValueMapping>) jMeterVariables.getObject(PropsKeysHelper.VALUE_SCHEMA_PROPERTIES));
+          generator.setUpGenerator(String.valueOf(JMeterContextService.getContext().getProperties().get(PropsKeysHelper.VALUE_SCHEMA)), (List<FieldValueMapping>) jMeterVariables.getObject(PropsKeysHelper.VALUE_SCHEMA_PROPERTIES));
         } else {
           throw exc;
         }
       }
     } else {
-      generator.setUpGenerator(jMeterVariables.get(PropsKeysHelper.VALUE_SCHEMA), (List<FieldValueMapping>) jMeterVariables.getObject(PropsKeysHelper.VALUE_SCHEMA_PROPERTIES));
+      generator.setUpGenerator(String.valueOf(JMeterContextService.getContext().getProperties().get(PropsKeysHelper.VALUE_SCHEMA)), (List<FieldValueMapping>) jMeterVariables.getObject(PropsKeysHelper.VALUE_SCHEMA_PROPERTIES));
     }
 
     return generator;
@@ -468,15 +468,16 @@ public final class SamplerUtil {
 
   private static BaseLoadGenerator getLoadGenerator(final JMeterVariables jmeterVariables) {
     final BaseLoadGenerator generator;
+    final String schemaType = (String) JMeterContextService.getContext().getProperties().get(PropsKeysHelper.VALUE_SCHEMA_TYPE);
 
-    if (Objects.nonNull(jmeterVariables.get(PropsKeysHelper.VALUE_SCHEMA_TYPE))) {
-      if (JSON_TYPE_SET.contains(jmeterVariables.get(PropsKeysHelper.VALUE_SCHEMA_TYPE).toLowerCase())) {
+    if (Objects.nonNull(schemaType)) {
+      if (JSON_TYPE_SET.contains(schemaType.toLowerCase())) {
         generator = new JsonSRLoadGenerator();
-      } else if (jmeterVariables.get(PropsKeysHelper.VALUE_SCHEMA_TYPE).equalsIgnoreCase("avro")) {
+      } else if ("avro".equalsIgnoreCase(schemaType)) {
         generator = new AvroSRLoadGenerator();
-      } else if (jmeterVariables.get(PropsKeysHelper.VALUE_SCHEMA_TYPE).equalsIgnoreCase("Protobuf")) {
+      } else if ("Protobuf".equalsIgnoreCase(schemaType)) {
         generator = new ProtobufLoadGenerator();
-      } else if (jmeterVariables.get(PropsKeysHelper.VALUE_SCHEMA_TYPE).equalsIgnoreCase("NoSchema")) {
+      } else if ("Protobuf".equalsIgnoreCase(schemaType)) {
         generator = new PlainTextLoadGenerator();
       } else {
         throw new KLoadGenException("Unsupported Serializer");
